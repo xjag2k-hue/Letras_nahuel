@@ -146,7 +146,7 @@ const ALPHA="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const NUMS="0123456789".split("");
 
 let langIdx=0, current=null, flashTimeout=null, panelOpen=false;
-let apiKey = "4ae6aeb2b3c3481db5003b19035ee5de";
+let apiKey = "4ae6aeb2b3c3481db5003b19035ee5de;
 
 const mainEl=document.getElementById("main");
 const bigLetter=document.getElementById("big-letter");
@@ -271,8 +271,11 @@ async function speak(text, lang){
       c: "mp3",
       f: "44khz_16bit_stereo"
     });
-    const audio=new Audio(`https://api.voicerss.org/?${params}`);
-    audio.onerror=(e)=>console.error("Audio error:",e);
+    const res = await fetch(`https://api.voicerss.org/?${params}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onended = () => URL.revokeObjectURL(url);
     audio.play().catch(e=>console.error("Play error:",e));
   } catch(e){
     console.error("TTS error:",e);
