@@ -127,7 +127,7 @@
 </div>
 
 <script>
-const LANGUAGES=[{code:"es-MX",name:"Español",tts:"es-MX",voice:"es-MX-Standard-A"},{code:"fr-FR",name:"Francés",tts:"fr-FR",voice:"fr-FR-Standard-A"},{code:"de-DE",name:"Alemán",tts:"de-DE",voice:"de-DE-Standard-A"}];
+const LANGUAGES=[{code:"es-MX",name:"Español",tts:"es-mx",voice:"Linda"},{code:"fr-FR",name:"Francés",tts:"fr-fr",voice:"Heloise"},{code:"de-DE",name:"Alemán",tts:"de-de",voice:"Hanna"}];
 
 const NAMES={
   "es-MX":{A:"a",B:"be",C:"ce",D:"de",E:"e",F:"efe",G:"ge",H:"hache",I:"i",J:"jota",K:"ka",L:"ele",M:"eme",N:"ene",O:"o",P:"pe",Q:"cu",R:"erre",S:"ese",T:"te",U:"u",V:"uve",W:"doble uve",X:"equis",Y:"ye",Z:"zeta","\u00c1":"a con acento","\u00c9":"e con acento","\u00cd":"i con acento","\u00d3":"o con acento","\u00da":"u con acento","\u00d1":"enye","\u00dc":"u con dieresis",0:"cero",1:"uno",2:"dos",3:"tres",4:"cuatro",5:"cinco",6:"seis",7:"siete",8:"ocho",9:"nueve"},
@@ -146,7 +146,7 @@ const ALPHA="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const NUMS="0123456789".split("");
 
 let langIdx=0, current=null, flashTimeout=null, panelOpen=false;
-let apiKey = "a685b557454148ff965785c3080f647e";
+let apiKey = localStorage.getItem("gtts_key") || "";
 
 const mainEl=document.getElementById("main");
 const bigLetter=document.getElementById("big-letter");
@@ -262,28 +262,18 @@ async function speak(text, lang){
     return;
   }
   try{
-    const res=await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        input:{text},
-        voice:{languageCode:lang.tts, name:lang.voice},
-        audioConfig:{audioEncoding:"MP3", speakingRate:0.85, pitch:0}
-      })
+    const params=new URLSearchParams({
+      key: apiKey,
+      src: text,
+      hl: lang.tts,
+      v: lang.voice,
+      r: "-2",
+      c: "mp3",
+      f: "44khz_16bit_stereo"
     });
-    const data=await res.json();
-    console.log("TTS response:", JSON.stringify(data).slice(0,200));
-    if(data.audioContent){
-      const audio=new Audio("data:audio/mp3;base64,"+data.audioContent);
-      audio.oncanplaythrough=()=>console.log("Audio listo, reproduciendo...");
-      audio.onerror=(e)=>console.error("Audio error:",e);
-      const playResult=audio.play();
-      if(playResult instanceof Promise){
-        playResult.catch(e=>console.error("Play error:",e));
-      }
-    } else {
-      console.error("No audioContent en respuesta:", data);
-    }
+    const audio=new Audio(`https://api.voicerss.org/?${params}`);
+    audio.onerror=(e)=>console.error("Audio error:",e);
+    audio.play().catch(e=>console.error("Play error:",e));
   } catch(e){
     console.error("TTS error:",e);
   }
