@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Letras</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{width:100vw;height:100dvh;background:#0a0a0a;display:flex;font-family:-apple-system,"Segoe UI",sans-serif;overflow:hidden;user-select:none;}
+
+    #main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:#0a0a0a;transition:background .1s;}
+    #main.flash{background:#111220;}
+
+    #top-bar{position:absolute;top:18px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+
+    #lang-row{display:flex;gap:10px;}
+    .lang-btn{width:60px;height:60px;border-radius:14px;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);cursor:pointer;overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .lang-btn svg{width:100%;height:100%;display:block;}
+    .lang-btn:hover{transform:scale(1.08);}
+    .lang-btn.active{border:2px solid rgba(160,170,255,0.7);box-shadow:0 0 12px rgba(110,120,255,0.4);transform:scale(1.12);}
+
+    #edit-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.4);font-size:13px;font-weight:600;padding:8px 14px;cursor:pointer;transition:all .15s;}
+    #edit-btn:hover{background:rgba(255,255,255,0.12);color:#fff;}
+    #edit-btn.open{background:rgba(110,120,255,0.3);border-color:rgba(160,170,255,0.5);color:#fff;}
+
+    /* API key banner */
+    #api-banner{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(255,180,0,0.15);border:1px solid rgba(255,180,0,0.3);border-radius:12px;padding:10px 18px;display:flex;align-items:center;gap:10px;}
+    #api-banner span{color:rgba(255,200,80,0.9);font-size:13px;}
+    #api-banner input{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;padding:6px 10px;outline:none;width:280px;}
+    #api-banner input:focus{border-color:rgba(160,170,255,0.5);}
+    #api-banner button{background:rgba(110,120,255,0.5);border:1px solid rgba(160,170,255,0.4);border-radius:8px;color:#fff;font-size:13px;padding:6px 12px;cursor:pointer;}
+
+    #big-letter{font-size:clamp(160px,28vw,340px);font-weight:700;color:#fff;line-height:1;transition:transform .1s ease;display:none;cursor:pointer;}
+    #big-letter.pop{transform:scale(0.91);}
+    #big-letter:hover{opacity:.85;}
+    #letter-name{margin-top:12px;font-size:20px;color:rgba(255,255,255,0.28);letter-spacing:3px;text-transform:uppercase;display:none;}
+    #letter-example{margin-top:10px;font-size:28px;color:rgba(255,255,255,0.55);font-style:italic;display:none;}
+    #hint{font-size:20px;color:rgba(255,255,255,0.2);text-align:center;padding:0 40px;line-height:1.7;}
+
+    /* Panel */
+    #panel{width:0;height:100dvh;background:#141420;border-left:1px solid rgba(255,255,255,0.08);overflow:hidden;transition:width .3s ease;display:flex;flex-direction:column;flex-shrink:0;}
+    #panel.open{width:360px;}
+    #panel-header{padding:20px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;}
+    #panel-header h2{color:#fff;font-size:16px;font-weight:600;margin-bottom:4px;}
+    #panel-header p{color:rgba(255,255,255,0.3);font-size:12px;}
+    #panel-list{flex:1;overflow-y:auto;padding:10px 0;}
+    #panel-list::-webkit-scrollbar{width:4px;}
+    #panel-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}
+    .panel-item{display:flex;align-items:center;gap:10px;padding:8px 16px;}
+    .panel-key{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .panel-input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:14px;padding:7px 10px;outline:none;transition:border .15s;}
+    .panel-input:focus{border-color:rgba(160,170,255,0.5);background:rgba(110,120,255,0.1);}
+    #panel-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.07);flex-shrink:0;}
+    #save-btn{width:100%;padding:10px;border-radius:10px;background:rgba(110,120,255,0.5);border:1px solid rgba(160,170,255,0.4);color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+    #save-btn:hover{background:rgba(110,120,255,0.7);}
+  </style>
+</head>
+<body>
+
+<div id="main">
+  <div id="top-bar">
+    <div style="width:36px"></div>
+    <div id="lang-row">
+      <button class="lang-btn active" data-lang="0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+          <rect width="900" height="600" fill="#74ACDF"/>
+          <rect y="200" width="900" height="200" fill="#fff"/>
+          <g transform="translate(450,300)" stroke="#F6B40E" stroke-width="8" stroke-linecap="round">
+            <line x1="0" y1="-95" x2="0" y2="-68"/><line x1="47" y1="-82" x2="34" y2="-59"/>
+            <line x1="82" y1="-47" x2="59" y2="-34"/><line x1="95" y1="0" x2="68" y2="0"/>
+            <line x1="82" y1="47" x2="59" y2="34"/><line x1="47" y1="82" x2="34" y2="59"/>
+            <line x1="0" y1="95" x2="0" y2="68"/><line x1="-47" y1="82" x2="-34" y2="59"/>
+            <line x1="-82" y1="47" x2="-59" y2="34"/><line x1="-95" y1="0" x2="-68" y2="0"/>
+            <line x1="-82" y1="-47" x2="-59" y2="-34"/><line x1="-47" y1="-82" x2="-34" y2="-59"/>
+            <line x1="24" y1="-92" x2="17" y2="-66"/><line x1="66" y1="-66" x2="48" y2="-48"/>
+            <line x1="92" y1="-24" x2="66" y2="-17"/><line x1="92" y1="24" x2="66" y2="17"/>
+            <line x1="66" y1="66" x2="48" y2="48"/><line x1="24" y1="92" x2="17" y2="66"/>
+            <line x1="-24" y1="92" x2="-17" y2="66"/><line x1="-66" y1="66" x2="-48" y2="48"/>
+            <line x1="-92" y1="24" x2="-66" y2="17"/><line x1="-92" y1="-24" x2="-66" y2="-17"/>
+            <line x1="-66" y1="-66" x2="-48" y2="-48"/><line x1="-24" y1="-92" x2="-17" y2="-66"/>
+          </g>
+          <circle cx="450" cy="300" r="55" fill="#F6B40E"/>
+          <circle cx="435" cy="290" r="7" fill="#85340A"/>
+          <circle cx="465" cy="290" r="7" fill="#85340A"/>
+          <path d="M435 315 Q450 330 465 315" stroke="#85340A" stroke-width="5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="lang-btn" data-lang="1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+          <rect width="300" height="600" fill="#002395"/>
+          <rect x="300" width="300" height="600" fill="#fff"/>
+          <rect x="600" width="300" height="600" fill="#ED2939"/>
+        </svg>
+      </button>
+      <button class="lang-btn" data-lang="2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+          <rect width="900" height="200" fill="#000"/>
+          <rect y="200" width="900" height="200" fill="#DD0000"/>
+          <rect y="400" width="900" height="200" fill="#FFCE00"/>
+        </svg>
+      </button>
+    </div>
+    <button id="edit-btn">✏️ Editar</button>
+  </div>
+
+  <div id="big-letter"></div>
+  <div id="letter-name"></div>
+  <div id="letter-example"></div>
+  <div id="hint">Presiona una tecla</div>
+
+  <div id="api-banner">
+    <span>🔑 API Key:</span>
+    <input id="api-input" type="password" placeholder="Pegá tu Google TTS API key aquí"/>
+    <button id="api-save">OK</button>
+  </div>
+</div>
+
+<div id="panel">
+  <div id="panel-header">
+    <h2 id="panel-title">Palabras</h2>
+    <p>Editá el ejemplo para cada letra</p>
+  </div>
+  <div id="panel-list"></div>
+  <div id="panel-footer">
+    <button id="save-btn">Guardar cambios</button>
+  </div>
+</div>
+
+<script>
+const LANGUAGES=[{code:"es-MX",name:"Español",tts:"es-MX",voice:"es-MX-Standard-A"},{code:"fr-FR",name:"Francés",tts:"fr-FR",voice:"fr-FR-Standard-A"},{code:"de-DE",name:"Alemán",tts:"de-DE",voice:"de-DE-Standard-A"}];
+
+const NAMES={
+  "es-MX":{A:"a",B:"be",C:"ce",D:"de",E:"e",F:"efe",G:"ge",H:"hache",I:"i",J:"jota",K:"ka",L:"ele",M:"eme",N:"ene",O:"o",P:"pe",Q:"cu",R:"erre",S:"ese",T:"te",U:"u",V:"uve",W:"doble uve",X:"equis",Y:"ye",Z:"zeta","\u00c1":"a con acento","\u00c9":"e con acento","\u00cd":"i con acento","\u00d3":"o con acento","\u00da":"u con acento","\u00d1":"enye","\u00dc":"u con dieresis",0:"cero",1:"uno",2:"dos",3:"tres",4:"cuatro",5:"cinco",6:"seis",7:"siete",8:"ocho",9:"nueve"},
+  "fr-FR":{A:"a",B:"b\u00e9",C:"c\u00e9",D:"d\u00e9",E:"e",F:"effe",G:"g\u00e9",H:"ache",I:"i",J:"ji",K:"ka",L:"elle",M:"emme",N:"enne",O:"o",P:"p\u00e9",Q:"ku",R:"erre",S:"esse",T:"t\u00e9",U:"u",V:"v\u00e9",W:"double v\u00e9",X:"iks",Y:"i grec",Z:"z\u00e8de","\u00c0":"a accent grave","\u00c9":"e accent aigu","\u00c8":"e accent grave","\u00ca":"e accent circonflexe","\u00ce":"i accent circonflexe","\u00d4":"o accent circonflexe","\u00d9":"u accent grave","\u00db":"u accent circonflexe","\u00c7":"c\u00e9 c\u00e9dille",0:"z\u00e9ro",1:"un",2:"deux",3:"trois",4:"quatre",5:"cinq",6:"six",7:"sept",8:"huit",9:"neuf"},
+  "de-DE":{A:"ah",B:"beh",C:"tseh",D:"deh",E:"eh",F:"eff",G:"geh",H:"hah",I:"ih",J:"yot",K:"kah",L:"ell",M:"emm",N:"enn",O:"oh",P:"peh",Q:"kuh",R:"err",S:"ess",T:"teh",U:"uh",V:"fau",W:"weh",X:"iks",Y:"\u00fcpsilon",Z:"tsett","\u00c4":"a Umlaut","\u00d6":"o Umlaut","\u00dc":"u Umlaut","\u00df":"Eszett",0:"null",1:"eins",2:"zwei",3:"drei",4:"vier",5:"f\u00fcnf",6:"sechs",7:"sieben",8:"acht",9:"neun"},
+};
+
+const EXAMPLES={
+  "es-MX":{A:"de Abuelo",B:"de Burro",C:"de Casa",D:"de Dado",E:"de Elefante",F:"de Foca",G:"de Gato",H:"de Hada",I:"de Iglesia",J:"de Jirafa",K:"de Koala",L:"de Luna",M:"de Mano",N:"de Nube",O:"de Oso",P:"de Pato",Q:"de Queso",R:"de Rana",S:"de Sol",T:"de Tren",U:"de Uva",V:"de Vaca",W:"de Waffle",X:"de Xilofono",Y:"de Yogur",Z:"de Zapato",0:"cero manzanas",1:"una estrella",2:"dos patitos",3:"tres osos",4:"cuatro ruedas",5:"cinco dedos",6:"seis flores",7:"siete colores",8:"ocho patas",9:"nueve planetas"},
+  "fr-FR":{A:"comme Ami",B:"comme Ballon",C:"comme Chat",D:"comme Dodo",E:"comme Etoile",F:"comme Fleur",G:"comme Gateau",H:"comme Hibou",I:"comme Ile",J:"comme Jardin",K:"comme Koala",L:"comme Lion",M:"comme Maison",N:"comme Nuit",O:"comme Ours",P:"comme Papa",Q:"comme Queue",R:"comme Roi",S:"comme Soleil",T:"comme Train",U:"comme Univers",V:"comme Vache",W:"comme Wagon",X:"comme Xylophone",Y:"comme Yaourt",Z:"comme Zero",0:"zero bonbon",1:"un gateau",2:"deux oiseaux",3:"trois etoiles",4:"quatre roues",5:"cinq doigts",6:"six fleurs",7:"sept couleurs",8:"huit pattes",9:"neuf planetes"},
+  "de-DE":{A:"wie Affe",B:"wie Ball",C:"wie Clown",D:"wie Dackel",E:"wie Esel",F:"wie Fisch",G:"wie Gans",H:"wie Hund",I:"wie Igel",J:"wie Jogurt",K:"wie Katze",L:"wie Loewe",M:"wie Maus",N:"wie Nase",O:"wie Oma",P:"wie Panda",Q:"wie Qualle",R:"wie Regen",S:"wie Sonne",T:"wie Tiger",U:"wie Uhr",V:"wie Vogel",W:"wie Wolke",X:"wie Xylophon",Y:"wie Yak",Z:"wie Zug",0:"null Bonbons",1:"ein Stern",2:"zwei Enten",3:"drei Baeren",4:"vier Raeder",5:"fuenf Finger",6:"sechs Blumen",7:"sieben Farben",8:"acht Beine",9:"neun Planeten"},
+};
+
+const SPECIALS={"es-MX":["\u00c1","\u00c9","\u00cd","\u00d3","\u00da","\u00d1","\u00dc"],"fr-FR":["\u00c0","\u00c9","\u00c8","\u00ca","\u00ce","\u00d4","\u00d9","\u00db","\u00c7"],"de-DE":["\u00c4","\u00d6","\u00dc","\u00df"]};
+const ALPHA="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const NUMS="0123456789".split("");
+
+let langIdx=0, current=null, flashTimeout=null, panelOpen=false;
+let apiKey = localStorage.getItem("gtts_key") || "";
+
+const mainEl=document.getElementById("main");
+const bigLetter=document.getElementById("big-letter");
+const letterName=document.getElementById("letter-name");
+const letterExample=document.getElementById("letter-example");
+const hint=document.getElementById("hint");
+const panel=document.getElementById("panel");
+const panelTitle=document.getElementById("panel-title");
+const panelList=document.getElementById("panel-list");
+const editBtn=document.getElementById("edit-btn");
+const saveBtn=document.getElementById("save-btn");
+const apiBanner=document.getElementById("api-banner");
+const apiInput=document.getElementById("api-input");
+
+// Init API key UI
+if(apiKey){ apiBanner.style.display="none"; }
+apiInput.value=apiKey;
+document.getElementById("api-save").onclick=()=>{
+  apiKey=apiInput.value.trim();
+  localStorage.setItem("gtts_key",apiKey);
+  if(apiKey) apiBanner.style.display="none";
+};
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ if(panelOpen) closePanel(); return; }
+  const k=e.key.toUpperCase();
+  const lang=LANGUAGES[langIdx];
+  const allKeys=[...ALPHA,...NUMS,...(SPECIALS[lang.code]||[])];
+  if(allKeys.includes(k)) handleKey(k);
+});
+
+bigLetter.addEventListener("click",()=>{
+  if(!current) return;
+  const lang=LANGUAGES[langIdx];
+  const name=NAMES[lang.code]?.[current]??current;
+  const example=EXAMPLES[lang.code]?.[current]??"";
+  speak(example?name+"... "+example:name, lang);
+  bigLetter.classList.add("pop");
+  setTimeout(()=>bigLetter.classList.remove("pop"),130);
+});
+
+document.querySelectorAll(".lang-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    setLang(parseInt(btn.dataset.lang));
+    if(panelOpen) buildPanel();
+  });
+});
+
+editBtn.addEventListener("click",()=>panelOpen?closePanel():openPanel());
+saveBtn.addEventListener("click",savePanel);
+
+function openPanel(){panelOpen=true;panel.classList.add("open");editBtn.classList.add("open");editBtn.textContent="✕ Cerrar";buildPanel();}
+function closePanel(){panelOpen=false;panel.classList.remove("open");editBtn.classList.remove("open");editBtn.textContent="✏️ Editar";}
+
+function buildPanel(){
+  const lang=LANGUAGES[langIdx];
+  panelTitle.textContent="Palabras en "+lang.name;
+  panelList.innerHTML="";
+  const keys=[...ALPHA,...(SPECIALS[lang.code]||[]),...NUMS];
+  keys.forEach(k=>{
+    const val=EXAMPLES[lang.code]?.[k]??"";
+    const item=document.createElement("div");
+    item.className="panel-item";
+    item.innerHTML=`<div class="panel-key">${k}</div><input class="panel-input" data-key="${k}" value="${val}" placeholder="sin ejemplo" spellcheck="false"/>`;
+    panelList.appendChild(item);
+  });
+}
+
+function savePanel(){
+  const lang=LANGUAGES[langIdx];
+  panelList.querySelectorAll(".panel-input").forEach(input=>{
+    EXAMPLES[lang.code][input.dataset.key]=input.value.trim();
+  });
+  saveBtn.textContent="✓ Guardado";
+  setTimeout(()=>saveBtn.textContent="Guardar cambios",1500);
+  if(current) handleKey(current);
+}
+
+function handleKey(k){
+  current=k;
+  const lang=LANGUAGES[langIdx];
+  const name=NAMES[lang.code]?.[k]??k;
+  const example=EXAMPLES[lang.code]?.[k]??"";
+  hint.style.display="none";
+  bigLetter.style.display="block";
+  letterName.style.display="block";
+  letterExample.style.display=example?"block":"none";
+  bigLetter.textContent=k;
+  letterName.textContent=name;
+  letterExample.textContent=example?name+" "+example:"";
+  mainEl.classList.add("flash");
+  bigLetter.classList.add("pop");
+  clearTimeout(flashTimeout);
+  flashTimeout=setTimeout(()=>{mainEl.classList.remove("flash");bigLetter.classList.remove("pop");},130);
+  speak(example?name+"... "+example:name, lang);
+}
+
+function setLang(i){
+  langIdx=i;current=null;
+  bigLetter.style.display="none";
+  letterName.style.display="none";
+  letterExample.style.display="none";
+  hint.style.display="block";
+  document.querySelectorAll(".lang-btn").forEach((b,j)=>b.classList.toggle("active",j===i));
+}
+
+async function speak(text, lang){
+  if(!apiKey){
+    const utt=new SpeechSynthesisUtterance(text);
+    utt.lang=lang.tts;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utt);
+    return;
+  }
+  try{
+    const res=await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        input:{text},
+        voice:{languageCode:lang.tts, name:lang.voice},
+        audioConfig:{audioEncoding:"MP3", speakingRate:0.85, pitch:0}
+      })
+    });
+    const data=await res.json();
+    console.log("TTS response:", JSON.stringify(data).slice(0,200));
+    if(data.audioContent){
+      const audio=new Audio("data:audio/mp3;base64,"+data.audioContent);
+      audio.oncanplaythrough=()=>console.log("Audio listo, reproduciendo...");
+      audio.onerror=(e)=>console.error("Audio error:",e);
+      const playResult=audio.play();
+      if(playResult instanceof Promise){
+        playResult.catch(e=>console.error("Play error:",e));
+      }
+    } else {
+      console.error("No audioContent en respuesta:", data);
+    }
+  } catch(e){
+    console.error("TTS error:",e);
+  }
+}
+</script>
+</body>
+</html>
