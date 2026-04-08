@@ -108,11 +108,7 @@
   <div id="letter-example"></div>
   <div id="hint">Presiona una tecla</div>
 
-  <div id="api-banner">
-    <span>🔑 API Key:</span>
-    <input id="api-input" type="password" placeholder="Pegá tu Google TTS API key aquí"/>
-    <button id="api-save">OK</button>
-  </div>
+
 </div>
 
 <div id="panel">
@@ -146,7 +142,7 @@ const ALPHA="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const NUMS="0123456789".split("");
 
 let langIdx=0, current=null, flashTimeout=null, panelOpen=false;
-let apiKey = "4ae6aeb2b3c3481db5003b19035ee5de;
+let apiKey = "4ae6aeb2b3c3481db5003b19035ee5de";
 
 const mainEl=document.getElementById("main");
 const bigLetter=document.getElementById("big-letter");
@@ -158,17 +154,9 @@ const panelTitle=document.getElementById("panel-title");
 const panelList=document.getElementById("panel-list");
 const editBtn=document.getElementById("edit-btn");
 const saveBtn=document.getElementById("save-btn");
-const apiBanner=document.getElementById("api-banner");
-const apiInput=document.getElementById("api-input");
 
-// Init API key UI
-if(apiKey){ apiBanner.style.display="none"; }
-apiInput.value=apiKey;
-document.getElementById("api-save").onclick=()=>{
-  apiKey=apiInput.value.trim();
-  localStorage.setItem("gtts_key",apiKey);
-  if(apiKey) apiBanner.style.display="none";
-};
+
+
 
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){ if(panelOpen) closePanel(); return; }
